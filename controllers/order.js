@@ -1,5 +1,5 @@
 import Auth from "../models/authModel.js";
-import Order from "../models/OrderModel.js";
+import Order from "../models/orderModel.js";
 
 // 🔹 Buat order baru
 export const createOrder = async (req, res) => {

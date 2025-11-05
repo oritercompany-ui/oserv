@@ -12,6 +12,16 @@ import { UUID } from "sequelize";
 dotenv.config(); // 🧩 aktifkan dotenv
 const app = express();
 
+const port = process.env.PORT || 3000; // fallback
+app.listen(port, async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected!");
+  } catch (err) {
+    console.error("Unable to connect to DB:", err);
+  }
+});
+
 //(async () => {
   //await Order.sync({ alter: true });
 //})();
@@ -52,7 +62,6 @@ app.use(paymentRoutes);    // ✅ POST /orders
 app.use(providerRoutes);
 
 
-const PORT = process.env.PORT || 5000; 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ Server running on http://192.168.1.74:${PORT}`);
+app.listen(port, "0.0.0.0", () => {
+  console.log(`✅ Server running on http://192.168.1.74:${port}`);
 });
