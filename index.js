@@ -37,19 +37,24 @@ app.get("/", (req, res) => {
   res.send("🚀 Server QuickTune aktif dengan Sequelize + Railway!");
 });
 
-// Start server + DB
+// Fungsi start server (untuk lokal)
 const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("✅ Connected to Railway DB!");
-    await sequelize.sync({ alter: true }); // sync semua model
-
+    await sequelize.sync({ alter: true });
     app.listen(port, "0.0.0.0", () => {
-      console.log(`✅ Server running on http://192.168.1.74:${port}`);
+      console.log(`✅ Server running on http://localhost:${port}`);
     });
   } catch (err) {
     console.error("❌ Unable to connect to DB:", err);
   }
 };
 
-startServer();
+// Jalankan server hanya di lokal
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+// Export buat Vercel
+export default app;
