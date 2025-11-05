@@ -1,4 +1,4 @@
-import Order from "../models/OrderModel.js";
+import Order from "../models/orderModel.js";
 import Payment from "../models/paymentModel.js";
 
 // 🔹 Ambil semua order (semua status)
