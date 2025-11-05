@@ -1,0 +1,32 @@
+import express from "express";
+import {
+  getOrders,
+  confirmOrder,
+  logoutProvider,
+  updateOrderStatus,
+  getPayments,        // ✅ tambahkan
+  confirmPayment,     // ✅ tambahkan
+} from "../controllers/provider.js"; // pastikan nama file sesuai
+import { verifyToken } from "../middleware/verifyToken.js";
+
+const router = express.Router();
+
+// 🔹 Ambil semua order provider
+router.get("/provider/orders", verifyToken, getOrders);
+
+// 🔹 Konfirmasi order (ubah status jadi in_progress)
+router.patch("/provider/orders/:orderId/confirm", verifyToken, confirmOrder);
+
+// 🔹 Update status order manual (in_progress → completed)
+router.patch("/provider/orders/:orderId/status", verifyToken, updateOrderStatus);
+
+// 🔹 Ambil semua pembayaran untuk provider
+router.get("/provider/payments", verifyToken, getPayments);
+
+// 🔹 Konfirmasi pembayaran (ubah transaction_status jadi Success)
+router.patch("/provider/payments/:paymentId/confirm", verifyToken, confirmPayment);
+
+// 🔹 Logout provider
+router.delete("/provider/logout", verifyToken, logoutProvider);
+
+export default router;
