@@ -1,27 +1,24 @@
 import Payment from "../models/paymentModel.js";
 
-// =====================
-// CREATE PAYMENT (USER)
-// =====================
+// ✅ Create Payment (user)
 export const createPayment = async (req, res) => {
   try {
-    const {
-      order_id, amount, method, order_name,
-      vehicle_type, vehicle_brand, vehicle_model,
-      license_plate, color, order_status
-    } = req.body;
-
-    if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand || !vehicle_model || !license_plate || !color) {
+    const { order_id, amount, method, order_name, vehicle_type, vehicle_brand, order_status } = req.body;
+    if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
-    const user_id = req.user.uuid;
+    const user_id = req.user.uuid; // ambil dari token
 
     const payment = await Payment.create({
-      order_id, user_id, amount, method,
+      order_id,
+      user_id,
+      amount,
+      method,
       transaction_status: "pending",
-      order_name, vehicle_type, vehicle_brand,
-      vehicle_model, license_plate, color,
+      order_name,
+      vehicle_type,
+      vehicle_brand,
       order_status: order_status || "pending",
     });
 
@@ -32,9 +29,7 @@ export const createPayment = async (req, res) => {
   }
 };
 
-// =====================
-// GET ALL PAYMENTS (USER)
-// =====================
+// ✅ Get all payments (user)
 export const getAllPayments = async (req, res) => {
   try {
     const user_id = req.user.uuid;
@@ -49,9 +44,7 @@ export const getAllPayments = async (req, res) => {
   }
 };
 
-// =====================
-// GET PAYMENT BY ID (USER)
-// =====================
+// ✅ Get payment by ID (user)
 export const getPaymentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,9 +60,7 @@ export const getPaymentById = async (req, res) => {
   }
 };
 
-// =====================
-// UPDATE PAYMENT STATUS (USER)
-// =====================
+// ✅ Update payment status (user)
 export const updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -94,9 +85,7 @@ export const updatePaymentStatus = async (req, res) => {
   }
 };
 
-// =====================
-// DELETE PAYMENT (USER)
-// =====================
+// ✅ Delete payment (user)
 export const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -113,43 +102,39 @@ export const deletePayment = async (req, res) => {
   }
 };
 
-// =====================
-// GET ALL PAYMENTS (PROVIDER)
-// =====================
+// ✅ Get all payments for provider (tanpa join)
+// ✅ Get all payments for provider (tanpa join)
 export const getPaymentsProvider = async (req, res) => {
   try {
     const payments = await Payment.findAll({
       order: [["created_at", "DESC"]],
     });
 
+    // Kirim data langsung tanpa nested order
     const formatted = payments.map((p) => ({
       id: p.uuid,
       amount: p.amount,
       method: p.method,
       transaction_status: p.transaction_status,
       created_at: p.created_at,
-      order: {
-        name: p.order_name || "-",
-        vehicle_type: p.vehicle_type || "-",
-        vehicle_brand: p.vehicle_brand || "-",
-        vehicle_model: p.vehicle_model || "-",
-        license_plate: p.license_plate || "-",
-        color: p.color || "-",
-      },
-      order_status: p.order_status || "-",
+      order_name: p.order_name,
+      vehicle_type: p.vehicle_type,
+      vehicle_brand: p.vehicle_brand,
+      order_status: p.order_status,
     }));
 
     res.status(200).json({ payments: formatted });
   } catch (error) {
     console.error("❌ getPaymentsProvider error:", error);
-    res.status(500).json({ message: "Gagal ambil data pembayaran", error: error.message });
+    res.status(500).json({
+      message: "Gagal ambil data pembayaran",
+      error: error.message,
+    });
   }
 };
 
 
-// =====================
-// CONFIRM PAYMENT (PROVIDER)
-// =====================
+// ✅ Confirm payment by provider
 export const confirmPayment = async (req, res) => {
   try {
     const { paymentId } = req.params;
