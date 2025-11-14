@@ -20,27 +20,23 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
+// ---------------- MIDDLEWARE ----------------
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// ---------------- ROUTES ----------------
 app.use(authRoutes);
 app.use(orderRoutes);
 app.use(paymentRoutes);
 app.use(providerRoutes);
 
-// Create HTTP server + Socket.IO
+// ---------------- SOCKET.IO ----------------
 const server = http.createServer(app);
 export const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-// Socket.IO connection
 io.on("connection", (socket) => {
   console.log("🚀 User connected:", socket.id);
   socket.on("disconnect", () => console.log("❌ User disconnected:", socket.id));
@@ -52,36 +48,40 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ Connected to DB!");
 
-    // Matikan FK sementara
+    // Matikan FK sementara untuk drop tabel
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
 
-    // Hapus tabel Order (Pesanans lama) saja
+    // Hapus tabel Order lama
     await Order.drop().catch(() => {
+      console.log("⚠️ Tabel Order tidak ditemukan atau gagal di-drop");
+    });
+    await Pesanans.drop().catch(() => {
       console.log("⚠️ Tabel Order tidak ditemukan atau gagal di-drop");
     });
 
     // Aktifkan FK lagi
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
-    // Sinkronisasi tabel lain
+    // Sinkronisasi model lainnya
     await Role.sync({ alter: true });
     await Auth.sync({ alter: true });
-    await Order.sync({ alter: true }); // otomatis bikin ulang Order
+    await Order.sync({ alter: true }); // buat ulang tabel Order
     await Payment.sync({ alter: true });
-    console.log("🔥 Models tersinkron");
+    console.log("🔥 Semua models tersinkron");
 
-    // Seed role awal
+    // Seed role awal jika belum ada
     const roles = [
       { name: "user", description: "User biasa" },
       { name: "provider", description: "Mekanik / Provider" },
       { name: "admin", description: "Administrator" },
     ];
+
     for (const role of roles) {
       await Role.findOrCreate({ where: { name: role.name }, defaults: role });
     }
     console.log("✅ Role awal berhasil diset");
 
-    // Jalankan server lokal (bukan serverless)
+    // Jalankan server lokal jika bukan production
     if (process.env.NODE_ENV !== "production") {
       server.listen(port, () =>
         console.log(`Server berjalan di http://localhost:${port}`)
@@ -95,5 +95,5 @@ const startServer = async () => {
 // Jalankan server
 startServer();
 
-// Export app untuk Vercel serverless
+// Export app untuk deployment serverless (Vercel)
 export default app;
