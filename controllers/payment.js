@@ -165,37 +165,24 @@ export const deletePayment = async (req, res) => {
 // =====================
 // GET ALL ORDERS SEBAGAI "PAYMENTS" UNTUK PROVIDER
 export const getOrdersAsPayments = async (req, res) => {
-  try {
-    const orders = await Order.findAll({
-      order: [["createdAt", "DESC"]],
-    });
-
-    // Format supaya mirip Payment
-    const formatted = orders.map((o) => ({
-      id: o.id,
-      amount: o.estimated_price || 0, // bisa diisi default atau kalkulasi
-      method: "-", // karena order belum bayar
-      transaction_status: "pending",
-      created_at: o.createdAt,
-      order: {
-        name: o.name || "Order Tanpa Nama",
-        vehicle_type: o.vehicle_type || "-",
-        vehicle_brand: o.vehicle_brand || "-",
-        vehicle_model: o.vehicle_model || "-",
-        license_plate: o.license_plate || "-",
-        color: o.color || "-",
-      },
-      order_status: o.status || "pending",
-    }));
-
-    res.status(200).json({ payments: formatted });
-  } catch (error) {
-    console.error("❌ getOrdersAsPayments error:", error);
-    res.status(500).json({
-      message: "Gagal ambil data order",
-      error: error.message,
-    });
-  }
+  const orders = await Order.findAll({ order: [["createdAt", "DESC"]] });
+  const formatted = orders.map(o => ({
+    id: o.id,
+    amount: o.estimated_price || 0,
+    method: "-", // karena order belum bayar
+    transaction_status: "pending",
+    created_at: o.createdAt,
+    order: {
+      name: o.name || "Order Tanpa Nama",
+      vehicle_type: o.vehicle_type || "-",
+      vehicle_brand: o.vehicle_brand || "-",
+      vehicle_model: o.vehicle_model || "-",
+      license_plate: o.license_plate || "-",
+      color: o.color || "-",
+    },
+    order_status: o.status || "pending",
+  }));
+  res.status(200).json({ payments: formatted });
 };
 // =====================
 // CONFIRM PAYMENT (PROVIDER)
