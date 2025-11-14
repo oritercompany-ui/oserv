@@ -1,9 +1,15 @@
 import Payment from "../models/paymentModel.js";
 
-// ✅ Create Payment (user)
+// =====================
+// CREATE PAYMENT (USER)
+// =====================
 export const createPayment = async (req, res) => {
   try {
-    const { order_id, amount, method, order_name, vehicle_type, vehicle_brand, vehicle_model, license_plate, color, order_status } = req.body;
+    const {
+      order_id, amount, method, order_name,
+      vehicle_type, vehicle_brand, vehicle_model,
+      license_plate, color, order_status
+    } = req.body;
 
     if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand || !vehicle_model || !license_plate || !color) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
@@ -12,17 +18,10 @@ export const createPayment = async (req, res) => {
     const user_id = req.user.uuid;
 
     const payment = await Payment.create({
-      order_id,
-      user_id,
-      amount,
-      method,
+      order_id, user_id, amount, method,
       transaction_status: "pending",
-      order_name,
-      vehicle_type,
-      vehicle_brand,
-      vehicle_model,
-      license_plate,
-      color,
+      order_name, vehicle_type, vehicle_brand,
+      vehicle_model, license_plate, color,
       order_status: order_status || "pending",
     });
 
@@ -33,7 +32,9 @@ export const createPayment = async (req, res) => {
   }
 };
 
-// ✅ Get all payments (user)
+// =====================
+// GET ALL PAYMENTS (USER)
+// =====================
 export const getAllPayments = async (req, res) => {
   try {
     const user_id = req.user.uuid;
@@ -48,7 +49,9 @@ export const getAllPayments = async (req, res) => {
   }
 };
 
-// ✅ Get payment by ID (user)
+// =====================
+// GET PAYMENT BY ID (USER)
+// =====================
 export const getPaymentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -64,7 +67,9 @@ export const getPaymentById = async (req, res) => {
   }
 };
 
-// ✅ Update payment status (user)
+// =====================
+// UPDATE PAYMENT STATUS (USER)
+// =====================
 export const updatePaymentStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -89,7 +94,9 @@ export const updatePaymentStatus = async (req, res) => {
   }
 };
 
-// ✅ Delete payment (user)
+// =====================
+// DELETE PAYMENT (USER)
+// =====================
 export const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -106,15 +113,15 @@ export const deletePayment = async (req, res) => {
   }
 };
 
-// ✅ Get all payments for provider (tanpa join)
-// ✅ Get all payments for provider (tanpa join)
+// =====================
+// GET ALL PAYMENTS (PROVIDER)
+// =====================
 export const getPaymentsProvider = async (req, res) => {
   try {
     const payments = await Payment.findAll({
       order: [["created_at", "DESC"]],
     });
 
-    // Nested 'order' object agar frontend bisa akses item.order.name dll
     const formatted = payments.map((p) => ({
       id: p.uuid,
       amount: p.amount,
@@ -122,28 +129,27 @@ export const getPaymentsProvider = async (req, res) => {
       transaction_status: p.transaction_status,
       created_at: p.created_at,
       order: {
-        name: p.order_name,
-        vehicle_type: p.vehicle_type,
-        vehicle_brand: p.vehicle_brand,
-        vehicle_model: p.vehicle_model,
-        license_plate: p.license_plate,
-        color: p.color,
+        name: p.order_name || "-",
+        vehicle_type: p.vehicle_type || "-",
+        vehicle_brand: p.vehicle_brand || "-",
+        vehicle_model: p.vehicle_model || "-",
+        license_plate: p.license_plate || "-",
+        color: p.color || "-",
       },
-      order_status: p.order_status,
+      order_status: p.order_status || "-",
     }));
 
     res.status(200).json({ payments: formatted });
   } catch (error) {
     console.error("❌ getPaymentsProvider error:", error);
-    res.status(500).json({
-      message: "Gagal ambil data pembayaran",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Gagal ambil data pembayaran", error: error.message });
   }
 };
 
 
-// ✅ Confirm payment by provider
+// =====================
+// CONFIRM PAYMENT (PROVIDER)
+// =====================
 export const confirmPayment = async (req, res) => {
   try {
     const { paymentId } = req.params;
