@@ -48,7 +48,7 @@ export const confirmOrder = async (req, res) => {
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
 
-    order.status = "in_progress";
+    order.status = "on_progress";
     await order.save();
 
     res.status(200).json({
@@ -70,7 +70,7 @@ export const updateOrderStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ["pending", "in_progress", "completed", "cancelled"];
+    const validStatuses = ["pending", "on_progress", "completed", "cancelled"];
     if (!validStatuses.includes(status))
       return res.status(400).json({ message: "Status tidak valid" });
 
