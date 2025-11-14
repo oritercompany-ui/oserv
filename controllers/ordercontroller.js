@@ -1,12 +1,11 @@
 import Order from "../models/orderModel.js";
 
 // ===============================
-// 1. CREATE ORDER
+// 1. CREATE ORDER (pakai user dari token)
 // ===============================
 export const createOrder = async (req, res) => {
   try {
     const {
-      name,
       phone_number,
       address,
       vehicle_type,
@@ -18,8 +17,14 @@ export const createOrder = async (req, res) => {
       problem_description,
     } = req.body;
 
+    if (!req.user || !req.user.id) {
+      return res.status(403).json({ message: "Token tidak valid atau kedaluwarsa." });
+    }
+
+    // pakai user_id dari token
     const order = await Order.create({
-      name,
+      user_id: req.user.id,
+      name: req.user.username || "User",
       phone_number,
       address,
       vehicle_type,
@@ -29,12 +34,12 @@ export const createOrder = async (req, res) => {
       license_plate,
       service_type,
       problem_description,
-      status: "pending", // default
+      status: "pending",
     });
 
     res.status(201).json({
       message: "Order berhasil dibuat",
-      data: order,
+      order,
     });
   } catch (err) {
     console.log("❌ Error create order:", err);
@@ -92,37 +97,7 @@ export const getOrderById = async (req, res) => {
 };
 
 // ===============================
-// 4. GET ORDERS BY STATUS
-// ===============================
-export const getOrdersByStatus = async (req, res) => {
-  try {
-    const { status } = req.params;
-    const allowedStatus = ["pending", "accepted", "on_progress", "finished", "cancelled"];
-
-    if (!allowedStatus.includes(status)) {
-      return res.status(400).json({ message: "Status tidak valid" });
-    }
-
-    const orders = await Order.findAll({
-      where: { status },
-      order: [["createdAt", "DESC"]],
-    });
-
-    res.json({
-      message: `Berhasil mengambil order dengan status ${status}`,
-      data: orders,
-    });
-  } catch (err) {
-    console.log("❌ Error getOrdersByStatus:", err);
-    res.status(500).json({
-      message: "Gagal mengambil order",
-      error: err.message,
-    });
-  }
-};
-
-// ===============================
-// 5. UPDATE STATUS ORDER
+// 4. UPDATE STATUS ORDER
 // ===============================
 export const updateOrderStatus = async (req, res) => {
   try {
@@ -137,6 +112,11 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Order.findByPk(orderId);
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
+
+    // jika provider menerima order
+    if (status === "accepted") {
+      order.provider_id = req.user.id; // provider dari token
+    }
 
     order.status = status;
     await order.save();
@@ -155,7 +135,7 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 // ===============================
-// 6. DELETE ORDER
+// 5. DELETE ORDER
 // ===============================
 export const deleteOrder = async (req, res) => {
   try {

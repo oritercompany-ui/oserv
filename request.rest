@@ -13,20 +13,20 @@ POST http://oserv.vercel.app/login
 Content-Type: application/json
 
 {
-  "email": "bleh@gmail.com",
+  "email": "aku@gmail.com",
   "password": "1"
 }
 
 ###
-POST https://oserv.vercel.app/pesanan
+POST https://oserv.vercel.app/orders
 Content-Type: application/json
 Authorization: Bearer <token>
 
 {
   "orders": [
     {
-      "id": "uuid-123",
-      "name": "John Doe",
+      "id": "4e457912-e52a-45cd-ae82-9ff8c2a98abd",
+      "name": "Aku",
       "phone_number": "08123456789",
       "vehicle_type": "Motor",
       "vehicle_brand": "Honda",
