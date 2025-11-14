@@ -61,6 +61,10 @@ const startServer = async () => {
     await Payment.sync({ alter: true });
     console.log("🔥 Semua models tersinkron");
 
+    // Hapus tabel Order dan Pesanans lama langsung via query
+await sequelize.query("DROP TABLE IF EXISTS `Order`;");
+await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
+
     // Seed role awal jika belum ada
     const roles = [
       { name: "user", description: "User biasa" },
