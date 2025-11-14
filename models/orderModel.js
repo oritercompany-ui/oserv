@@ -1,21 +1,74 @@
 import { DataTypes } from "sequelize";
-import db from "../config/db.js"; // koneksi Sequelize
+import sequelize from "../config/db.js";
+import User from "../models/authModel.js";
 
-const Order = db.define("Order", {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
+const Order = sequelize.define(
+  "Order",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+
+    // DATA CUSTOMER
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    // DATA KENDARAAN
+    vehicle_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    vehicle_brand: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    vehicle_model: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    color: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    license_plate: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    // LOKASI
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    // JENIS SERVIS
+    service_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    problem_description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    // STATUS ORDER
+    status: {
+      type: DataTypes.ENUM("pending", "accepted", "on_progress", "finished", "cancelled"),
+      defaultValue: "pending",
+    },   
   },
-  user_id: { type: DataTypes.UUID, allowNull: false },
-  name: { type: DataTypes.STRING, allowNull: false },
-  phone_number: { type: DataTypes.STRING, allowNull: false },
-  vehicle_type: { type: DataTypes.STRING, allowNull: false },
-  vehicle_brand: { type: DataTypes.STRING, allowNull: false },
-  problem_description: { type: DataTypes.TEXT, allowNull: false },
-  service_type: { type: DataTypes.STRING, allowNull: false },
-  address: { type: DataTypes.TEXT, allowNull: false },
-  status: { type: DataTypes.ENUM("pending","in_progress","completed","cancelled"), defaultValue: "pending" },
-}, { timestamps: true });
+  {
+    tableName: "Orders",
+    timestamps: true,
+  }
+);
 
 export default Order;

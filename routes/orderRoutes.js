@@ -1,25 +1,36 @@
 import express from "express";
+import { verifyToken } from "../middleware/verifyToken.js";
 import {
   createOrder,
-  getOrdersByUser
-} from "../controllers/order.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+  getAllOrders,
+  getOrderById,
+  getOrdersByStatus,
+  updateOrderStatus,
+  deleteOrder,
+} from "../controllers/ordercontroller.js";
 
 const router = express.Router();
 
-// POST /orders → buat order baru
+// =============================
+// ORDER ROUTES
+// =============================
+
+// 1. Buat order (user)
 router.post("/orders", verifyToken, createOrder);
 
-// GET /orders → semua order
-//router.get('/orders', verifyToken, getAllOrders);
+// 2. Ambil semua order
+router.get("/orders", verifyToken, getAllOrders);
 
-// GET /orders/user/:user_id → order by user
-router.get("/orders", verifyToken, getOrdersByUser); // GET /orders → order milik user
+// 3. Ambil order by ID
+router.get("/orders/:orderId", verifyToken, getOrderById);
 
-// PATCH /orders/:id/status → update status
-//router.patch("/:id/status", updateOrderStatus);
+// 4. Ambil order berdasarkan status
+router.get("/orders/status/:status", verifyToken, getOrdersByStatus);
 
-// DELETE /orders/:id → hapus order
-//router.delete("/:id", deleteOrder);
+// 5. Update status order
+router.put("/orders/:orderId/status", verifyToken, updateOrderStatus);
+
+// 6. Hapus order
+router.delete("/orders/:orderId", verifyToken, deleteOrder);
 
 export default router;

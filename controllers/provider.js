@@ -1,64 +1,100 @@
 import Order from "../models/orderModel.js";
 import Payment from "../models/paymentModel.js";
+import Auth from "../models/authModel.js";
 
-// 🔹 Ambil semua order (semua status)
+// 🔹 Ambil semua order (admin / provider)
 export const getOrders = async (req, res) => {
   try {
     const orders = await Order.findAll({
       order: [["createdAt", "DESC"]],
     });
-
     res.status(200).json({ orders });
   } catch (error) {
     console.error("❌ getOrders error:", error);
-    res.status(500).json({ message: "Gagal ambil order", error: error.message });
+    res.status(500).json({
+      message: "Gagal mengambil orders",
+      error: error.message,
+    });
   }
 };
 
-// 🔹 Konfirmasi order oleh provider
+// 🔹 Ambil order berdasarkan user login
+export const getOrdersByUser = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId)
+      return res.status(401).json({ message: "Token tidak valid" });
+
+    const orders = await Order.findAll({
+      where: { user_id: userId },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("❌ getOrdersByUser error:", error);
+    res.status(500).json({
+      message: "Gagal mengambil order user",
+      error: error.message,
+    });
+  }
+};
+
+// 🔹 Konfirmasi order (ubah status ke in_progress)
 export const confirmOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
-
-    const order = await Order.findByPk(orderId);
+    const { id } = req.params;
+    const order = await Order.findByPk(id);
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
 
     order.status = "in_progress";
     await order.save();
 
-    res.status(200).json({ message: "Order berhasil dikonfirmasi", order });
+    res.status(200).json({
+      message: "Order berhasil dikonfirmasi",
+      order,
+    });
   } catch (error) {
     console.error("❌ confirmOrder error:", error);
-    res.status(500).json({ message: "Gagal konfirmasi order", error: error.message });
+    res.status(500).json({
+      message: "Gagal konfirmasi order",
+      error: error.message,
+    });
   }
 };
 
-// 🔹 Update status manual
+// 🔹 Update status order
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { orderId } = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
     const validStatuses = ["pending", "in_progress", "completed", "cancelled"];
     if (!validStatuses.includes(status))
       return res.status(400).json({ message: "Status tidak valid" });
 
-    const order = await Order.findByPk(orderId);
+    const order = await Order.findByPk(id);
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
 
     order.status = status;
     await order.save();
 
-    res.status(200).json({ message: `Status diubah ke '${status}'`, order });
+    res.status(200).json({
+      message: `Status diubah ke '${status}'`,
+      order,
+    });
   } catch (error) {
     console.error("❌ updateOrderStatus error:", error);
-    res.status(500).json({ message: "Gagal update status", error: error.message });
+    res.status(500).json({
+      message: "Gagal update status order",
+      error: error.message,
+    });
   }
 };
 
-// 🔹 Ambil semua pembayaran untuk provider
+// 🔹 Ambil semua pembayaran
 export const getPayments = async (req, res) => {
   try {
     const payments = await Payment.findAll({
@@ -72,33 +108,39 @@ export const getPayments = async (req, res) => {
             "phone_number",
             "vehicle_type",
             "vehicle_brand",
+            "vehicle_model",
+            "license_plate",
+            "color",
             "status",
           ],
         },
       ],
-      order: [["created_at", "DESC"]],
+      order: [["createdAt", "DESC"]],
     });
 
     res.status(200).json({ payments });
   } catch (error) {
     console.error("❌ getPayments error:", error);
-    res.status(500).json({ message: "Gagal ambil data pembayaran", error: error.message });
+    res.status(500).json({
+      message: "Gagal ambil data pembayaran",
+      error: error.message,
+    });
   }
 };
 
-// 🔹 Konfirmasi pembayaran (update transaction_status jadi 'Success')
+// 🔹 Konfirmasi pembayaran
 export const confirmPayment = async (req, res) => {
   try {
     const { paymentId } = req.params;
-
     const payment = await Payment.findByPk(paymentId);
     if (!payment)
       return res.status(404).json({ message: "Pembayaran tidak ditemukan" });
 
     if (payment.transaction_status === "Success")
-      return res.status(400).json({ message: "Pembayaran sudah dikonfirmasi" });
+      return res
+        .status(400)
+        .json({ message: "Pembayaran sudah dikonfirmasi" });
 
-    // Update status pembayaran
     payment.transaction_status = "Success";
     payment.paid_at = new Date();
     await payment.save();
@@ -109,16 +151,22 @@ export const confirmPayment = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ confirmPayment error:", error);
-    res.status(500).json({ message: "Gagal konfirmasi pembayaran", error: error.message });
+    res.status(500).json({
+      message: "Gagal konfirmasi pembayaran",
+      error: error.message,
+    });
   }
 };
 
-// 🔹 Logout provider
-export const logoutProvider = async (req, res) => {
+// 🔹 Logout provider/user
+export const logoutUser = async (req, res) => {
   try {
     res.status(200).json({ message: "Logout berhasil" });
   } catch (error) {
-    console.error("logoutProvider error:", error);
-    res.status(500).json({ message: "Gagal logout", error: error.message });
+    console.error("logoutUser error:", error);
+    res.status(500).json({
+      message: "Gagal logout",
+      error: error.message,
+    });
   }
 };

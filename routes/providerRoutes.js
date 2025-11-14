@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  getOrders,
-  confirmOrder,
-  logoutProvider,
-  updateOrderStatus,
-  getPayments,        // ✅ tambahkan
-  confirmPayment,     // ✅ tambahkan
-} from "../controllers/provider.js"; // pastikan nama file sesuai
+  getOrders,           // ambil semua order
+  confirmOrder,        // konfirmasi order
+  logoutUser,          // logout provider/user
+  updateOrderStatus,   // update status order
+  getPayments,         // ambil semua pembayaran
+  confirmPayment,      // konfirmasi pembayaran
+} from "../controllers/provider.js"; // pastikan file controller sesuai
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
@@ -15,10 +15,10 @@ const router = express.Router();
 router.get("/provider/orders", verifyToken, getOrders);
 
 // 🔹 Konfirmasi order (ubah status jadi in_progress)
-router.patch("/provider/orders/:orderId/confirm", verifyToken, confirmOrder);
+router.patch("/provider/orders/:id/confirm", verifyToken, confirmOrder);
 
 // 🔹 Update status order manual (in_progress → completed)
-router.patch("/provider/orders/:orderId/status", verifyToken, updateOrderStatus);
+router.patch("/provider/orders/:id/status", verifyToken, updateOrderStatus);
 
 // 🔹 Ambil semua pembayaran untuk provider
 router.get("/provider/payments", verifyToken, getPayments);
@@ -27,6 +27,6 @@ router.get("/provider/payments", verifyToken, getPayments);
 router.patch("/provider/payments/:paymentId/confirm", verifyToken, confirmPayment);
 
 // 🔹 Logout provider
-router.delete("/provider/logout", verifyToken, logoutProvider);
+router.delete("/provider/logout", verifyToken, logoutUser);
 
 export default router;

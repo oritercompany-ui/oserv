@@ -1,29 +1,50 @@
-POST http://192.168.1.63:5000/register
+POST http://oserv.vercel.app/register
 Content-Type: application/json
 
 {
-  "username": "cup",
-  "email": "ucup@gmail.com",
-  "password": "12345",
-  "phone": "08123456789",
-  "address": "Jl. Merpati No. 9"
+  "username": "aku",
+  "email": "aku@gmail.com",
+  "password": "1",
+  "role": "user"
 }
 
 ###
-POST http://192.168.1.74:5000/login
+POST http://oserv.vercel.app/login
 Content-Type: application/json
 
 {
-  "email": "pengguna@gmail.com",
+  "email": "bleh@gmail.com",
   "password": "1"
 }
 
 ###
-POST http://192.168.1.63:5000/orders
+POST https://oserv.vercel.app/pesanan
 Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "orders": [
+    {
+      "id": "uuid-123",
+      "name": "John Doe",
+      "phone_number": "08123456789",
+      "vehicle_type": "Motor",
+      "vehicle_brand": "Honda",
+      "vehicle_model": "CBR 150",
+      "license_plate": "B 1234 ABC",
+      "color": "Merah",
+      "problem_description": "Mesin tidak hidup",
+      "service_type": "Servis Ringan",
+      "address": "Jl. Contoh No.1",
+      "status": "pending"
+    }
+  ]
+}
+
+
 
 ###
-GET http://192.168.1.63:5000/users
+GET http://oserv.vercel.app/users
 
 Content-Type: application/json
 
@@ -32,7 +53,7 @@ GET http://localhost:5000/auth/
 Content-Type: application/json
 
 ###
-DELETE http://192.168.1.22:5000/logout/
+DELETE http://oserv.vercel.app/logout/
 
 ###
 DELETE http://localhost:5000/delete/79b88cae-c7a0-4cd7-a13d-e066c7ccea9b
