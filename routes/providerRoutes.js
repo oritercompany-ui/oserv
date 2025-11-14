@@ -15,10 +15,10 @@ const router = express.Router();
 router.get("/provider/orders", verifyToken, getOrders);
 
 // 🔹 Konfirmasi order (ubah status jadi in_progress)
-router.patch("/provider/orders/:id/confirm", verifyToken, confirmOrder);
+router.patch("/provider/orders/:uuid/confirm", verifyToken, confirmOrder);
 
 // 🔹 Update status order manual (in_progress → completed)
-router.patch("/provider/orders/:id/status", verifyToken, updateOrderStatus);
+router.patch("/provider/orders/:uuid/status", verifyToken, updateOrderStatus);
 
 // 🔹 Ambil semua pembayaran untuk provider
 router.get("/provider/payments", verifyToken, getPayments);
