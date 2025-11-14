@@ -1,7 +1,7 @@
 import Order from "../models/orderModel.js";
 
 // ===============================
-// 1. CREATE ORDER
+// 1. CREATE ORDER (VERSI LENGKAP)
 // ===============================
 export const createOrder = async (req, res) => {
   try {
@@ -18,18 +18,26 @@ export const createOrder = async (req, res) => {
       problem_description,
     } = req.body;
 
+    // ✅ Validasi minimal
+    if (!name || !phone_number || !address || !vehicle_type || !service_type) {
+      return res.status(400).json({
+        message: "Field name, phone_number, address, vehicle_type, dan service_type wajib diisi",
+      });
+    }
+
+    // Buat order dengan fallback/default value
     const order = await Order.create({
-      user_id: req.user.id,       // <-- user dari verifyToken
+      user_id: req.user.id, // dari verifyToken
       name,
       phone_number,
       address,
       vehicle_type,
-      vehicle_brand,
-      vehicle_model,
-      color,
-      license_plate,
+      vehicle_brand: vehicle_brand || "Unknown",
+      vehicle_model: vehicle_model || "Unknown",
+      color: color || "Unknown",
+      license_plate: license_plate || "N/A",
       service_type,
-      problem_description,
+      problem_description: problem_description || "-",
       status: "pending",
     });
 
@@ -45,6 +53,7 @@ export const createOrder = async (req, res) => {
     });
   }
 };
+
 
 // ===============================
 // 2. GET ALL ORDERS
