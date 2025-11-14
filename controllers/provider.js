@@ -21,12 +21,12 @@ export const getOrders = async (req, res) => {
 // 🔹 Ambil order berdasarkan user login
 export const getOrdersByUser = async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId)
+    const userUuid = req.user?.uuid;
+    if (!userUuid)
       return res.status(401).json({ message: "Token tidak valid" });
 
     const orders = await Order.findAll({
-      where: { user_id: userId },
+      where: { user_id: userUuid },
       order: [["createdAt", "DESC"]],
     });
 
@@ -40,15 +40,43 @@ export const getOrdersByUser = async (req, res) => {
   }
 };
 
-// 🔹 Konfirmasi order (ubah status ke in_progress)
+// 🔹 Ambil order untuk provider login
+export const getOrdersByProvider = async (req, res) => {
+  try {
+    const providerUuid = req.user?.uuid;
+    if (!providerUuid)
+      return res.status(401).json({ message: "Token tidak valid" });
+
+    const orders = await Order.findAll({
+      where: { provider_id: providerUuid },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error("❌ getOrdersByProvider error:", error);
+    res.status(500).json({
+      message: "Gagal mengambil order provider",
+      error: error.message,
+    });
+  }
+};
+
+// 🔹 Konfirmasi order (ubah status ke on_progress dan set provider_id)
 export const confirmOrder = async (req, res) => {
   try {
-    const { id } = req.params;
-    const order = await Order.findByPk(id);
+    const { uuid } = req.params;
+    const order = await Order.findByPk(uuid);
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
 
     order.status = "on_progress";
+
+    // Jika provider_id kosong, set otomatis dari token
+    if (!order.provider_id && req.user?.uuid) {
+      order.provider_id = req.user.uuid;
+    }
+
     await order.save();
 
     res.status(200).json({
@@ -67,18 +95,24 @@ export const confirmOrder = async (req, res) => {
 // 🔹 Update status order
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { uuid } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ["pending", "on_progress", "completed", "cancelled"];
+    const validStatuses = ["pending", "accepted", "on_progress", "finished", "cancelled"];
     if (!validStatuses.includes(status))
       return res.status(400).json({ message: "Status tidak valid" });
 
-    const order = await Order.findByPk(id);
+    const order = await Order.findByPk(uuid);
     if (!order)
       return res.status(404).json({ message: "Order tidak ditemukan" });
 
     order.status = status;
+
+    // Jika status accepted dan provider_id kosong, set dari token
+    if (status === "accepted" && !order.provider_id && req.user?.uuid) {
+      order.provider_id = req.user.uuid;
+    }
+
     await order.save();
 
     res.status(200).json({
@@ -103,7 +137,7 @@ export const getPayments = async (req, res) => {
           model: Order,
           as: "order",
           attributes: [
-            "id",
+            "uuid",
             "name",
             "phone_number",
             "vehicle_type",
