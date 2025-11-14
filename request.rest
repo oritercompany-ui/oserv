@@ -13,7 +13,7 @@ POST http://oserv.vercel.app/login
 Content-Type: application/json
 
 {
-  "email": "aku@gmail.com",
+  "email": "lagi@gmail.com",
   "password": "1"
 }
 

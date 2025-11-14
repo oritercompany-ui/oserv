@@ -6,7 +6,7 @@ import Order from "../models/orderModel.js";
 export const createOrder = async (req, res) => {
   try {
     // ✅ Pastikan user dari token ada
-    if (!req.user?.id) {
+    if (!req.user?.uuid) {
       return res.status(401).json({ message: "User tidak ditemukan. Pastikan token dikirim." });
     }
 
@@ -32,7 +32,7 @@ export const createOrder = async (req, res) => {
 
     // ✅ Buat order dengan fallback/default value
     const order = await Order.create({
-      user_id: req.user.id,
+      user_uuid: req.user.uuid,
       name,
       phone_number,
       address,
