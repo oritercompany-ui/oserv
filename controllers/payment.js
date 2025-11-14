@@ -3,27 +3,28 @@ import Payment from "../models/paymentModel.js";
 // ✅ Create Payment (user)
 export const createPayment = async (req, res) => {
   try {
-    const { order_id, amount, method, order_name, vehicle_type, vehicle_brand, order_status } = req.body;
-    if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand) {
+    const { order_id, amount, method, order_name, vehicle_type, vehicle_brand, vehicle_model, license_plate, color, order_status } = req.body;
+
+    if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand || !vehicle_model || !license_plate || !color) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
-    const user_id = req.user.uuid; // ambil dari token
+    const user_id = req.user.uuid;
 
     const payment = await Payment.create({
-  order_id,
-  user_id,
-  amount,
-  method,
-  transaction_status: "pending",
-  order_name,
-  vehicle_type,
-  vehicle_brand,
-  vehicle_model,     // <--- tambahkan
-  license_plate,     // <--- tambahkan
-  color,             // <--- tambahkan
-  order_status: order_status || "pending",
-});
+      order_id,
+      user_id,
+      amount,
+      method,
+      transaction_status: "pending",
+      order_name,
+      vehicle_type,
+      vehicle_brand,
+      vehicle_model,
+      license_plate,
+      color,
+      order_status: order_status || "pending",
+    });
 
     res.status(201).json({ message: "Pembayaran berhasil dibuat", payment });
   } catch (error) {
