@@ -112,16 +112,20 @@ export const getPaymentsProvider = async (req, res) => {
 
     // Kirim data langsung tanpa nested order
     const formatted = payments.map((p) => ({
-      id: p.uuid,
-      amount: p.amount,
-      method: p.method,
-      transaction_status: p.transaction_status,
-      created_at: p.created_at,
-      order_name: p.order_name,
-      vehicle_type: p.vehicle_type,
-      vehicle_brand: p.vehicle_brand,
-      order_status: p.order_status,
-    }));
+  id: p.uuid,
+  amount: p.amount,
+  method: p.method,
+  transaction_status: p.transaction_status,
+  created_at: p.created_at,
+  order_name: p.order_name,
+  vehicle_type: p.vehicle_type,
+  vehicle_brand: p.vehicle_brand,
+  vehicle_model: p.vehicle_model,
+  license_plate: p.license_plate,
+  color: p.color,
+  order_status: p.order_status,
+}));
+
 
     res.status(200).json({ payments: formatted });
   } catch (error) {
