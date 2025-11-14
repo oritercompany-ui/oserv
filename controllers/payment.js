@@ -1,8 +1,11 @@
 import Payment from "../models/paymentModel.js";
+import Order from "../models/orderModel.js";
 
 // =====================
 // CREATE PAYMENT (USER)
 // =====================
+
+// ✅ Create Payment (user)
 export const createPayment = async (req, res) => {
   try {
     const {
@@ -18,18 +21,22 @@ export const createPayment = async (req, res) => {
       order_status,
     } = req.body;
 
-    if (
-      !order_id ||
-      !amount ||
-      !method ||
-      !order_name ||
-      !vehicle_type ||
-      !vehicle_brand
-    ) {
+    if (!order_id || !amount || !method || !order_name || !vehicle_type || !vehicle_brand) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
     const user_id = req.user.uuid;
+
+    // Mapping status frontend ke enum backend
+    const validStatuses = ["pending", "Success", "failed", "Cancelled"];
+    let statusMapped = "pending"; // default
+    if (order_status) {
+      if (["finished", "completed"].includes(order_status.toLowerCase())) {
+        statusMapped = "Success";
+      } else if (validStatuses.includes(order_status)) {
+        statusMapped = order_status;
+      }
+    }
 
     const payment = await Payment.create({
       order_id,
@@ -40,21 +47,19 @@ export const createPayment = async (req, res) => {
       order_name,
       vehicle_type,
       vehicle_brand,
-      vehicle_model: vehicle_model || "-",
-      license_plate: license_plate || "-",
-      color: color || "-",
-      order_status: order_status || "pending",
+      vehicle_model,
+      license_plate,
+      color,
+      order_status: statusMapped,
     });
 
     res.status(201).json({ message: "Pembayaran berhasil dibuat", payment });
   } catch (error) {
     console.error("❌ createPayment error:", error);
-    res.status(500).json({
-      message: "Gagal membuat pembayaran",
-      error: error.message,
-    });
+    res.status(500).json({ message: "Gagal membuat pembayaran", error: error.message });
   }
 };
+
 
 // =====================
 // GET ALL PAYMENTS (USER)
@@ -158,39 +163,40 @@ export const deletePayment = async (req, res) => {
 // =====================
 // GET ALL PAYMENTS (PROVIDER)
 // =====================
-export const getPaymentsProvider = async (req, res) => {
+// GET ALL ORDERS SEBAGAI "PAYMENTS" UNTUK PROVIDER
+export const getOrdersAsPayments = async (req, res) => {
   try {
-    const payments = await Payment.findAll({
-      order: [["created_at", "DESC"]],
+    const orders = await Order.findAll({
+      order: [["createdAt", "DESC"]],
     });
 
-    const formatted = payments.map((p) => ({
-      id: p.uuid,
-      amount: p.amount || 0,
-      method: p.method || "-",
-      transaction_status: p.transaction_status || "pending",
-      created_at: p.created_at,
+    // Format supaya mirip Payment
+    const formatted = orders.map((o) => ({
+      id: o.id,
+      amount: o.estimated_price || 0, // bisa diisi default atau kalkulasi
+      method: "-", // karena order belum bayar
+      transaction_status: "pending",
+      created_at: o.createdAt,
       order: {
-        name: p.order_name || "Order Tanpa Nama",
-        vehicle_type: p.vehicle_type || "-",
-        vehicle_brand: p.vehicle_brand || "-",
-        vehicle_model: p.vehicle_model || "-",
-        license_plate: p.license_plate || "-",
-        color: p.color || "-",
+        name: o.name || "Order Tanpa Nama",
+        vehicle_type: o.vehicle_type || "-",
+        vehicle_brand: o.vehicle_brand || "-",
+        vehicle_model: o.vehicle_model || "-",
+        license_plate: o.license_plate || "-",
+        color: o.color || "-",
       },
-      order_status: p.order_status || "pending",
+      order_status: o.status || "pending",
     }));
 
     res.status(200).json({ payments: formatted });
   } catch (error) {
-    console.error("❌ getPaymentsProvider error:", error);
+    console.error("❌ getOrdersAsPayments error:", error);
     res.status(500).json({
-      message: "Gagal ambil data pembayaran",
+      message: "Gagal ambil data order",
       error: error.message,
     });
   }
 };
-
 // =====================
 // CONFIRM PAYMENT (PROVIDER)
 // =====================

@@ -5,7 +5,7 @@ import {
   getPaymentById,
   updatePaymentStatus,
   deletePayment,
-  getPaymentsProvider,
+  getOrdersAsPayments,
   confirmPayment,
 } from "../controllers/payment.js";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -22,7 +22,7 @@ router.delete("/payments/:id", verifyToken, deletePayment);     // Hapus pembaya
 
 // ---------------- PROVIDER ENDPOINTS ---------------- //
 // Semua endpoint provider harus login dulu
-router.get("/provider/payments", verifyToken, getPaymentsProvider);           // Get semua pembayaran
+router.get("/provider/payments", verifyToken, getOrdersAsPayments);           // Get semua pembayaran
 router.patch("/provider/payments/:paymentId/confirm", verifyToken, confirmPayment); // Konfirmasi pembayaran
 
 export default router;
