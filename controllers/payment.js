@@ -11,16 +11,19 @@ export const createPayment = async (req, res) => {
     const user_id = req.user.uuid; // ambil dari token
 
     const payment = await Payment.create({
-      order_id,
-      user_id,
-      amount,
-      method,
-      transaction_status: "pending",
-      order_name,
-      vehicle_type,
-      vehicle_brand,
-      order_status: order_status || "pending",
-    });
+  order_id,
+  user_id,
+  amount,
+  method,
+  transaction_status: "pending",
+  order_name,
+  vehicle_type,
+  vehicle_brand,
+  vehicle_model,     // <--- tambahkan
+  license_plate,     // <--- tambahkan
+  color,             // <--- tambahkan
+  order_status: order_status || "pending",
+});
 
     res.status(201).json({ message: "Pembayaran berhasil dibuat", payment });
   } catch (error) {
