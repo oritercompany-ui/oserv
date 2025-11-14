@@ -51,14 +51,6 @@ const startServer = async () => {
     // Matikan FK sementara untuk drop tabel
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
 
-    // Hapus tabel Order dan Pesanans lama
-    await Order.drop().catch(() => {
-      console.log("⚠️ Tabel Order tidak ditemukan atau gagal di-drop");
-    });
-    await Pesanans.drop().catch(() => {
-      console.log("⚠️ Tabel Pesanans tidak ditemukan atau gagal di-drop");
-    });
-
     // Aktifkan FK lagi
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
