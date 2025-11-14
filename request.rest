@@ -25,12 +25,12 @@ Authorization: Bearer <token>
 {
   "orders": [
     {
-      "id": "4e457912-e52a-45cd-ae82-9ff8c2a98abd",
+      "uuid": "4e457912-e52a-45cd-ae82-9ff8c2a98abd",
       "name": "Aku",
       "phone_number": "08123456789",
       "vehicle_type": "Motor",
       "vehicle_brand": "Honda",
-      "vehicle_model": "CBR 150",
+      "vehicle_model": "Vario",
       "license_plate": "B 1234 ABC",
       "color": "Merah",
       "problem_description": "Mesin tidak hidup",
