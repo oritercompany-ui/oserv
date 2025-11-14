@@ -32,7 +32,7 @@ export const createOrder = async (req, res) => {
 
     // ✅ Buat order dengan fallback/default value
     const order = await Order.create({
-      user_uuid: req.user.uuid,
+      user_id: req.user.uuid,
       name,
       phone_number,
       address,
