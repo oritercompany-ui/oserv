@@ -7,50 +7,39 @@ import Order from "../models/orderModel.js";
 // ======================================================
 export const createPayment = async (req, res) => {
   try {
-    const { order_id, amount, method } = req.body;
+    const {
+      order_id,
+      user_id,
+      amount,
+      method,
+      order_name,
+      vehicle_type,
+      vehicle_brand,
+      vehicle_model,
+      license_plate,
+      color,
+      order_status,
+    } = req.body;
 
-    if (!order_id || !amount || !method) {
-      return res.status(400).json({
-        message: "order_id, amount, dan method wajib diisi",
-      });
-    }
-
-    const user_id = req.user.uuid;
-
-    // Ambil data order
-    const order = await Order.findByPk(order_id);
-    if (!order) {
-      return res.status(404).json({ message: "Order tidak ditemukan" });
-    }
-
-    // Copy field dari Order → Payment
     const payment = await Payment.create({
       order_id,
       user_id,
       amount,
       method,
-
-      order_name: order.name,
-      vehicle_type: order.vehicle_type,
-      vehicle_brand: order.vehicle_brand,
-      vehicle_model: order.vehicle_model,
-      license_plate: order.license_plate,
-      color: order.color,
-
+      order_name,
+      vehicle_type,
+      vehicle_brand,
+      vehicle_model,
+      license_plate,
+      color,
+      order_status,
       transaction_status: "pending",
-      order_status: order.status,
     });
 
-    res.status(201).json({
-      message: "Pembayaran berhasil dibuat",
-      payment,
-    });
+    res.status(201).json({ message: "Payment created", payment });
   } catch (error) {
-    console.error("❌ createPayment error:", error);
-    res.status(500).json({
-      message: "Gagal membuat pembayaran",
-      error: error.message,
-    });
+    console.error("❌ Error create payment:", error);
+    res.status(500).json({ error: "Gagal membuat payment" });
   }
 };
 
