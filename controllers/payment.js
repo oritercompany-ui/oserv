@@ -8,27 +8,36 @@ export const createPayment = async (req, res) => {
   try {
     const { orderId, amount, method } = req.body;
 
+    // ambil user id dari token
+    const userId = req.user?.uuid || req.user?.id || req.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User tidak terautentikasi" });
+    }
+
+    // validasi input
     if (!orderId || !amount || !method) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
+    // cek order
     const order = await Order.findByPk(orderId);
-
     if (!order) {
       return res.status(404).json({ error: "Order tidak ditemukan" });
     }
 
+    // create payment
     const payment = await Payment.create({
-      user_id: req.user.uuid,
+      user_id: userId,
       order_id: order.id,
-      mechanic_id: order.mechanic_id || null, // bisa kosong
+      mechanic_id: order.mechanic_id || null,
 
       amount,
       method,
       transaction_status: "Pending",
       paid_at: null,
 
-      // Copy data order
+      // copy data order
       order_name: order.name,
       vehicle_type: order.vehicle_type,
       vehicle_brand: order.vehicle_brand,
