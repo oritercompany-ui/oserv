@@ -51,21 +51,40 @@ const Payment = db.define(
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
 
-    // 🔹 Kolom baru untuk menampilkan info order langsung di payment
+    // 🔹 Tambahan untuk menampilkan info order langsung pada payment
     order_name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+
     vehicle_type: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+
     vehicle_brand: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+
+    // 🔥 Tambahan yang tadinya HILANG
+    vehicle_model: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    license_plate: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    color: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     order_status: {
-      type: DataTypes.ENUM("pending","in_progress","completed","cancelled"),
+      type: DataTypes.ENUM("pending", "in_progress", "completed", "cancelled"),
       allowNull: false,
       defaultValue: "pending",
     },
