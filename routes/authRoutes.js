@@ -18,13 +18,13 @@ const router = express.Router();
 // ====================
 router.post("/register", register);
 router.post("/login", login);
-router.delete("/logout", logout);
+router.post("/logout", logout); // ganti ke POST agar lebih konsisten
 
 // ====================
 // 🔒 PROTECTED ROUTES
 // ====================
 
-// Siapa pun yang punya token valid bisa akses profil
+// Semua user yang tokennya valid bisa akses profil
 router.get("/profile", verifyToken, profile);
 
 // ====================

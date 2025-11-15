@@ -6,11 +6,9 @@ import Role from "../models/roleModel.js";
 
 dotenv.config();
 
-/**
- * ===========================
- * REGISTER
- * ===========================
- */
+// ===========================
+// REGISTER
+// ===========================
 export const register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
@@ -23,7 +21,7 @@ export const register = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "Email sudah digunakan" });
 
-    // 🔹 Tentukan role (default = "user")
+    // Tentukan role default
     let roleName = "user";
     if (role === "provider") roleName = "provider";
     if (role === "admin") roleName = "admin";
@@ -34,10 +32,8 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: `Role '${roleName}' tidak ditemukan` });
 
-    // 🔐 Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 💾 Simpan user baru
     const newUser = await Auth.create({
       username,
       email,
@@ -45,7 +41,6 @@ export const register = async (req, res) => {
       role_id: userRole.id,
     });
 
-    // 🔑 Buat JWT token dengan role
     const token = jwt.sign(
       {
         uuid: newUser.uuid,
@@ -72,11 +67,9 @@ export const register = async (req, res) => {
   }
 };
 
-/**
- * ===========================
- * LOGIN
- * ===========================
- */
+// ===========================
+// LOGIN
+// ===========================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -85,19 +78,16 @@ export const login = async (req, res) => {
       where: { email },
       include: {
         model: Role,
-        as: "role", // harus sama dengan alias di model
+        as: "role",
         attributes: ["name"],
       },
     });
 
-    if (!user)
-      return res.status(404).json({ message: "User tidak ditemukan" });
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ message: "Password salah" });
+    if (!isMatch) return res.status(401).json({ message: "Password salah" });
 
-    // 🔑 Buat token dengan role
     const token = jwt.sign(
       {
         uuid: user.uuid,
@@ -108,11 +98,9 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // 🔀 Tentukan redirect sesuai role
-    let redirectTo = "";
+    let redirectTo = "/user/home";
     if (user.role.name === "admin") redirectTo = "/admin/dashboard";
-    else if (user.role.name === "provider") redirectTo = "/provider/home";
-    else redirectTo = "/user/home";
+    if (user.role.name === "provider") redirectTo = "/provider/home";
 
     return res.status(200).json({
       message: "Login berhasil",
@@ -131,11 +119,9 @@ export const login = async (req, res) => {
   }
 };
 
-/**
- * ===========================
- * PROFILE / TOKEN VALIDATION
- * ===========================
- */
+// ===========================
+// PROFILE / TOKEN VALIDATION
+// ===========================
 export const profile = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -151,8 +137,7 @@ export const profile = async (req, res) => {
       attributes: ["uuid", "username", "email"],
     });
 
-    if (!user)
-      return res.status(404).json({ message: "User tidak ditemukan" });
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
 
     res.status(200).json({
       message: "Token valid",
@@ -170,90 +155,13 @@ export const profile = async (req, res) => {
   }
 };
 
-/**
- * ===========================
- * GET SEMUA USER
- * ===========================
- */
-export const getAllAuth = async (req, res) => {
-  try {
-    const users = await Auth.findAll({
-      include: { model: Role, as: "role", attributes: ["name"] },
-      attributes: ["uuid", "username", "email"],
-    });
-
-    const formatted = users.map((u) => ({
-      uuid: u.uuid,
-      username: u.username,
-      email: u.email,
-      role: u.role?.name,
-    }));
-
-    res.status(200).json(formatted);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data user", error: error.message });
-  }
-};
-
-/**
- * ===========================
- * GET USER BY UUID
- * ===========================
- */
-export const getAuthById = async (req, res) => {
-  try {
-    const { uuid } = req.params;
-    const user = await Auth.findOne({
-      where: { uuid },
-      include: { model: Role, as: "role", attributes: ["name"] },
-      attributes: ["uuid", "username", "email"],
-    });
-
-    if (!user)
-      return res.status(404).json({ message: "User tidak ditemukan" });
-
-    res.status(200).json({
-      uuid: user.uuid,
-      username: user.username,
-      email: user.email,
-      role: user.role?.name,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal mengambil data user", error: error.message });
-  }
-};
-
-/**
- * ===========================
- * DELETE USER (ADMIN ONLY)
- * ===========================
- */
-export const deleteAuthById = async (req, res) => {
-  try {
-    const { uuid } = req.params;
-    const user = await Auth.findOne({ where: { uuid } });
-    if (!user)
-      return res.status(404).json({ message: "User tidak ditemukan" });
-
-    await Auth.destroy({ where: { uuid } });
-    res.status(200).json({ message: `User dengan uuid ${uuid} berhasil dihapus` });
-  } catch (error) {
-    res.status(500).json({ message: "Gagal menghapus user", error: error.message });
-  }
-};
-
-/**
- * ===========================
- * LOGOUT
- * ===========================
- */
+// ===========================
+// LOGOUT
+// ===========================
 export const logout = async (req, res) => {
   try {
-    res.status(200).json({ message: "Logout berhasil. Hapus token di client." });
+    // Cukup beri respon, client hapus token sendiri
+    res.status(200).json({ message: "Logout berhasil" });
   } catch (error) {
     res.status(500).json({ message: "Gagal logout", error: error.message });
   }
