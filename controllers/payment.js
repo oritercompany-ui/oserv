@@ -1,43 +1,28 @@
 import Payment from "../models/paymentModel.js";
 import Order from "../models/orderModel.js";
 
-// ===============================
-// CREATE PAYMENT
-// ===============================
 export const createPayment = async (req, res) => {
   try {
     const { orderId, amount, method } = req.body;
+    const userId = req.user.id;
 
-    // ambil user id dari token
-    const userId = req.user?.uuid || req.user?.id || req.userId;
-
-    if (!userId) {
-      return res.status(400).json({ message: "User tidak terautentikasi" });
-    }
-
-    // validasi input
-    if (!orderId || !amount || !method) {
-      return res.status(400).json({ message: "Semua field wajib diisi" });
-    }
-
-    // cek order
+    // 1️⃣ Ambil data order
     const order = await Order.findByPk(orderId);
     if (!order) {
-      return res.status(404).json({ error: "Order tidak ditemukan" });
+      return res.status(404).json({ message: "Order tidak ditemukan" });
     }
 
-    // create payment
+    // 2️⃣ Create payment + copy data order
     const payment = await Payment.create({
-      user_id: userId,
       order_id: order.id,
-      mechanic_id: order.mechanic_id || null,
-
+      user_id: userId,
+      mechanic_id: order.provider_id,
       amount,
       method,
-      transaction_status: "Pending",
+      transaction_status: "pending",
       paid_at: null,
 
-      // copy data order
+      // COPY ORDER → PAYMENT
       order_name: order.name,
       vehicle_type: order.vehicle_type,
       vehicle_brand: order.vehicle_brand,
@@ -52,12 +37,11 @@ export const createPayment = async (req, res) => {
       payment,
     });
   } catch (error) {
-    console.error("❌ ERROR createPayment:", error);
-    return res.status(500).json({
-      error: "Gagal membuat payment",
-    });
+    console.error("❌ Error create payment:", error);
+    return res.status(500).json({ message: "Gagal membuat payment" });
   }
 };
+
 
 // ===============================
 // GET PAYMENT BY USER
