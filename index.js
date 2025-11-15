@@ -53,11 +53,6 @@ const startServer = async () => {
 
     // HAPUS tabel lama yang tidak dipakai lagi
     await sequelize.query("DROP TABLE IF EXISTS `payment`;");
-    await sequelize.query("DROP TABLE IF EXISTS `Payment`;");
-    await sequelize.query("DROP TABLE IF EXISTS `Payments`;"); // jika versi lama pernah kebuat
-    await sequelize.query("DROP TABLE IF EXISTS `Order`;");     // kalau ini memang kamu mau hapus
-    await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
-
     // Hidupkan FK lagi
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
