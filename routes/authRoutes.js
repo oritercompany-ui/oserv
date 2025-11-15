@@ -3,9 +3,6 @@ import {
   register,
   login,
   profile,
-  getAllAuth,
-  getAuthById,
-  deleteAuthById,
   logout,
 } from "../controllers/auth.js";
 import { verifyToken } from "../middleware/verifyToken.js";
@@ -26,18 +23,5 @@ router.post("/logout", logout); // ganti ke POST agar lebih konsisten
 
 // Semua user yang tokennya valid bisa akses profil
 router.get("/profile", verifyToken, profile);
-
-// ====================
-// 👨‍🔧 PROVIDER & ADMIN ROUTES
-// ====================
-
-// Provider & admin bisa lihat semua user
-router.get("/users", verifyToken, verifyRole(["provider", "admin"]), getAllAuth);
-
-// Provider & admin bisa lihat user tertentu
-router.get("/users/:uuid", verifyToken, verifyRole(["provider", "admin"]), getAuthById);
-
-// Hanya admin yang bisa hapus user
-router.delete("/users/:uuid", verifyToken, verifyRole(["admin"]), deleteAuthById);
 
 export default router;
