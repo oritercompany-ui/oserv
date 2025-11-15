@@ -1,23 +1,39 @@
 import Payment from "../models/paymentModel.js";
 import Order from "../models/orderModel.js";
 
+// ===============================
+// CREATE PAYMENT
+// ===============================
 export const createPayment = async (req, res) => {
   try {
     const { orderId, amount, method } = req.body;
     const userId = req.user.id;
 
-    // 1️⃣ Ambil data order
+    // ✅ Validasi field wajib
+    if (!orderId || !amount || !method) {
+      return res.status(400).json({ message: "Semua field wajib diisi" });
+    }
+
+    // ✅ Ambil data order
     const order = await Order.findByPk(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order tidak ditemukan" });
     }
 
-    // 2️⃣ Create payment + copy data order
+    // ✅ Convert amount ke number (DECIMAL)
+    const amountNumber = parseFloat(amount);
+    if (isNaN(amountNumber) || amountNumber <= 0) {
+      return res
+        .status(400)
+        .json({ message: "Jumlah pembayaran harus lebih dari 0" });
+    }
+
+    // ✅ Buat payment
     const payment = await Payment.create({
       order_id: order.id,
       user_id: userId,
-      mechanic_id: order.provider_id,
-      amount,
+      mechanic_id: order.provider_id ?? null,
+      amount: amountNumber,
       method,
       transaction_status: "pending",
       paid_at: null,
@@ -41,7 +57,6 @@ export const createPayment = async (req, res) => {
     return res.status(500).json({ message: "Gagal membuat payment" });
   }
 };
-
 
 // ===============================
 // GET PAYMENT BY USER
