@@ -1,165 +1,107 @@
 import Payment from "../models/paymentModel.js";
 import Order from "../models/orderModel.js";
 
-
-// ======================================================
-// CREATE PAYMENT (USER)
-// ======================================================
+// ===============================
+// CREATE PAYMENT
+// ===============================
 export const createPayment = async (req, res) => {
   try {
-    const {
-      order_id,
-      user_id,
-      amount,
-      method,
-      order_name,
-      vehicle_type,
-      vehicle_brand,
-      vehicle_model,
-      license_plate,
-      color,
-      order_status,
-    } = req.body;
+    const { orderId, amount, method } = req.body;
 
+    // Ambil order berdasarkan ID
+    const order = await Order.findByPk(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order tidak ditemukan" });
+    }
+
+    // Create payment baru + copy data order
     const payment = await Payment.create({
-      order_id,
-      user_id,
+      user_id: req.user.uuid,
+      order_id: order.id,
       amount,
       method,
-      order_name,
-      vehicle_type,
-      vehicle_brand,
-      vehicle_model,
-      license_plate,
-      color,
-      order_status,
-      transaction_status: "pending",
+      transaction_status: "Pending",
+      paid_at: null,
+
+      order_name: order.name,
+      vehicle_type: order.vehicle_type,
+      vehicle_brand: order.vehicle_brand,
+      vehicle_model: order.vehicle_model,
+      license_plate: order.license_plate,
+      color: order.color,
+      order_status: order.status, // kalau kolomnya "status"
     });
 
-    res.status(201).json({ message: "Payment created", payment });
-  } catch (error) {
-    console.error("❌ Error create payment:", error);
-    res.status(500).json({ error: "Gagal membuat payment" });
-  }
-};
-
-
-// ======================================================
-// GET ALL PAYMENTS (USER)
-// ======================================================
-export const getAllPayments = async (req, res) => {
-  try {
-    const user_id = req.user.uuid;
-
-    const payments = await Payment.findAll({
-      where: { user_id },
-      order: [["created_at", "DESC"]],
-    });
-
-    res.status(200).json({ payments });
-  } catch (error) {
-    console.error("❌ getAllPayments error:", error);
-    res.status(500).json({
-      message: "Gagal mengambil data pembayaran",
-      error: error.message,
-    });
-  }
-};
-
-
-// ======================================================
-// GET PAYMENT BY ID (USER)
-// ======================================================
-export const getPaymentById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user_id = req.user.uuid;
-
-    const payment = await Payment.findOne({
-      where: { uuid: id, user_id },
-    });
-
-    if (!payment) {
-      return res.status(404).json({ message: "Pembayaran tidak ditemukan" });
-    }
-
-    res.status(200).json({ payment });
-  } catch (error) {
-    console.error("❌ getPaymentById error:", error);
-    res.status(500).json({
-      message: "Gagal mengambil detail pembayaran",
-      error: error.message,
-    });
-  }
-};
-
-
-// ======================================================
-// UPDATE PAYMENT STATUS (USER)
-// ======================================================
-export const updatePaymentStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { transaction_status } = req.body;
-
-    const validStatuses = ["pending", "Success", "failed", "Cancelled"];
-    if (!validStatuses.includes(transaction_status)) {
-      return res.status(400).json({ message: "Status tidak valid" });
-    }
-
-    const payment = await Payment.findOne({ where: { uuid: id } });
-    if (!payment) {
-      return res.status(404).json({ message: "Pembayaran tidak ditemukan" });
-    }
-
-    await payment.update({
-      transaction_status,
-      paid_at:
-        transaction_status === "Success"
-          ? new Date()
-          : payment.paid_at,
-    });
-
-    res.status(200).json({
-      message: `Status pembayaran diubah ke '${transaction_status}'`,
+    return res.status(201).json({
+      message: "Payment berhasil dibuat",
       payment,
     });
   } catch (error) {
-    console.error("❌ updatePaymentStatus error:", error);
-    res.status(500).json({
-      message: "Gagal memperbarui status pembayaran",
-      error: error.message,
-    });
+    console.error("❌ ERROR create payment:", error);
+    return res.status(500).json({ error: "Gagal membuat payment" });
   }
 };
 
-
-// ======================================================
-// DELETE PAYMENT (USER)
-// ======================================================
-export const deletePayment = async (req, res) => {
+// ===============================
+// GET PAYMENT BY USER
+// ===============================
+export const getPaymentsByUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.uuid;
-
-    const payment = await Payment.findOne({
-      where: { uuid: id, user_id },
+    const payments = await Payment.findAll({
+      where: { user_id: req.user.uuid },
+      order: [["created_at", "DESC"]],
     });
+
+    return res.status(200).json({ payments });
+  } catch (error) {
+    console.error("❌ ERROR get payment by user:", error);
+    return res.status(500).json({ error: "Gagal mengambil data payment" });
+  }
+};
+
+// ===============================
+// GET PAYMENT BY ID
+// ===============================
+export const getPaymentById = async (req, res) => {
+  try {
+    const payment = await Payment.findByPk(req.params.id);
 
     if (!payment) {
-      return res.status(404).json({ message: "Pembayaran tidak ditemukan" });
+      return res.status(404).json({ error: "Payment tidak ditemukan" });
     }
 
-    await payment.destroy();
+    return res.status(200).json({ payment });
+  } catch (error) {
+    console.error("❌ ERROR get payment:", error);
+    return res.status(500).json({ error: "Gagal mengambil payment" });
+  }
+};
 
-    res.status(200).json({
-      message: "Pembayaran berhasil dihapus",
+// ===============================
+// UPDATE STATUS PAYMENT
+// ===============================
+export const updatePaymentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const payment = await Payment.findByPk(req.params.id);
+
+    if (!payment) {
+      return res.status(404).json({ error: "Payment tidak ditemukan" });
+    }
+
+    payment.transaction_status = status;
+    payment.paid_at = status === "Success" ? new Date() : null;
+
+    await payment.save();
+
+    return res.status(200).json({
+      message: "Status payment berhasil diperbarui",
+      payment,
     });
   } catch (error) {
-    console.error("❌ deletePayment error:", error);
-    res.status(500).json({
-      message: "Gagal menghapus pembayaran",
-      error: error.message,
-    });
+    console.error("❌ ERROR update payment:", error);
+    return res.status(500).json({ error: "Gagal mengupdate status payment" });
   }
 };

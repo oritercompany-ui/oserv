@@ -1,32 +1,29 @@
 import express from "express";
+import { verifyToken } from "../middleware/verifyToken.js";
+
 import {
   createPayment,
-  getAllPayments,
+  getPaymentsByUser,
   getPaymentById,
   updatePaymentStatus,
-  deletePayment,
 } from "../controllers/payment.js";
-import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// ======================================================
-// USER PAYMENT ENDPOINTS (HARUS LOGIN)
-// ======================================================
+// ===============================
+// PAYMENT ROUTES (USER)
+// ===============================
 
-// Create payment
+// 🔹 Buat pembayaran
 router.post("/payments", verifyToken, createPayment);
 
-// Get all payments owned by the logged-in user
-router.get("/payments", verifyToken, getAllPayments);
+// 🔹 Ambil semua pembayaran user
+router.get("/payments", verifyToken, getPaymentsByUser);
 
-// Get specific payment by ID
+// 🔹 Ambil 1 pembayaran spesifik
 router.get("/payments/:id", verifyToken, getPaymentById);
 
-// Update payment status
+// 🔹 Update status pembayaran (optional dipakai provider/admin)
 router.patch("/payments/:id", verifyToken, updatePaymentStatus);
-
-// Delete payment
-router.delete("/payments/:id", verifyToken, deletePayment);
 
 export default router;
