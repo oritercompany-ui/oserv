@@ -48,24 +48,28 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ Connected to DB!");
 
-    // Matikan FK sementara untuk drop tabel
+    // Matikan FK supaya bebas drop tabel
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
 
-    // Aktifkan FK lagi
+    // HAPUS tabel lama yang tidak dipakai lagi
+    await sequelize.query("DROP TABLE IF EXISTS `payment`;");
+    await sequelize.query("DROP TABLE IF EXISTS `Payment`;");
+    await sequelize.query("DROP TABLE IF EXISTS `Payments`;"); // jika versi lama pernah kebuat
+    await sequelize.query("DROP TABLE IF EXISTS `Order`;");     // kalau ini memang kamu mau hapus
+    await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
+
+    // Hidupkan FK lagi
     await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
 
-    // Sinkronisasi model lainnya
+    // Sinkronisasi model setelah tabel lama dihapus
     await Role.sync({ alter: true });
     await Auth.sync({ alter: true });
-    await Order.sync({ alter: true }); // buat ulang tabel Order
+    await Order.sync({ alter: true });
     await Payment.sync({ alter: true });
-    console.log("🔥 Semua models tersinkron");
 
-    // Hapus tabel Order dan Pesanans lama langsung via query
-await sequelize.query("DROP TABLE IF EXISTS `Order`;");
-await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
+    console.log("🔥 Semua models tersinkron (baru)");
 
-    // Seed role awal jika belum ada
+    // Seed role awal
     const roles = [
       { name: "user", description: "User biasa" },
       { name: "provider", description: "Mekanik / Provider" },
@@ -77,7 +81,7 @@ await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
     }
     console.log("✅ Role awal berhasil diset");
 
-    // Jalankan server lokal jika bukan production
+    // Jalankan server lokal
     if (process.env.NODE_ENV !== "production") {
       server.listen(port, () =>
         console.log(`Server berjalan di http://localhost:${port}`)
@@ -90,6 +94,3 @@ await sequelize.query("DROP TABLE IF EXISTS `Pesanans`;");
 
 // Jalankan server
 startServer();
-
-// Export app untuk deployment serverless (Vercel)
-export default app;
