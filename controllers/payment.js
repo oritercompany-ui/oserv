@@ -8,28 +8,27 @@ export const createPayment = async (req, res) => {
   try {
     const { orderId, amount, method } = req.body;
 
-    // Validasi frontend
     if (!orderId || !amount || !method) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
-    // Ambil order berdasarkan ID
     const order = await Order.findByPk(orderId);
 
     if (!order) {
       return res.status(404).json({ error: "Order tidak ditemukan" });
     }
 
-    // Buat payment baru
     const payment = await Payment.create({
       user_id: req.user.uuid,
       order_id: order.id,
+      mechanic_id: order.mechanic_id || null, // bisa kosong
+
       amount,
       method,
       transaction_status: "Pending",
       paid_at: null,
 
-      // Copy data order (tanpa relasi)
+      // Copy data order
       order_name: order.name,
       vehicle_type: order.vehicle_type,
       vehicle_brand: order.vehicle_brand,
@@ -44,7 +43,7 @@ export const createPayment = async (req, res) => {
       payment,
     });
   } catch (error) {
-    console.error("❌ ERROR create payment:", error);
+    console.error("❌ ERROR createPayment:", error);
     return res.status(500).json({
       error: "Gagal membuat payment",
     });
@@ -58,7 +57,7 @@ export const getPaymentsByUser = async (req, res) => {
   try {
     const payments = await Payment.findAll({
       where: { user_id: req.user.uuid },
-      order: [["created_at", "DESC"]],
+      order: [["createdAt", "DESC"]],
     });
 
     return res.status(200).json({ payments });
@@ -103,7 +102,6 @@ export const updatePaymentStatus = async (req, res) => {
       return res.status(404).json({ error: "Payment tidak ditemukan" });
     }
 
-    // Update status
     payment.transaction_status = status;
     payment.paid_at = status === "Success" ? new Date() : null;
 
